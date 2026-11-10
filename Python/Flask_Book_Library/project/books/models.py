@@ -1,4 +1,5 @@
 from project import db, app
+from sqlalchemy.orm import validates
 import re
 
 
@@ -21,6 +22,16 @@ class Book(db.Model):
 
     def __repr__(self):
         return f"Book(ID: {self.id}, Name: {self.name}, Author: {self.author}, Year Published: {self.year_published}, Type: {self.book_type}, Status: {self.status})"
+
+    @validates('author') # za każdym razem gdy kod próbuje przypisać wartość do pola author, wywołuje się ta metoda
+    def validate_author(self, key, author):
+        if not author:
+            raise ValueError("Author name cannot be empty.")
+        if len(author) > 64:
+            raise ValueError("Author name cannot exceed 64 characters.")
+        if not re.match(r'^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻàâäéèêëîïôöùûüÿçÀÂÄÉÈÊËÎÏÔÖÙÛÜŸÇ\s\.\-\'\,]+$', author):
+            raise ValueError("Author name contains invalid characters.")
+        return author
 
 
 with app.app_context():
